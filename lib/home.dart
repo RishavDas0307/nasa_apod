@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'authProvider.dart' as custom_auth_provider;
+import 'auth.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -50,6 +53,8 @@ class _HomeState extends State<Home> {
   }
 
   Widget _buildCard(Map<String, dynamic> data, int index) {
+    final authProvider = Provider.of<custom_auth_provider.AuthProvider>(context, listen: false);
+
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -81,7 +86,7 @@ class _HomeState extends State<Home> {
               child: Text(
                 data['title'] ?? 'No Title',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 20, // Enlarged title font size
                   fontWeight: FontWeight.bold,
                   color: Colors.blue,
                 ),
@@ -90,9 +95,30 @@ class _HomeState extends State<Home> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Text(
-              data['date'] ?? '',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  data['date'] ?? '',
+                  style: TextStyle(fontSize: 20, color: Colors.grey), // Enlarged date font size
+                ),
+                IconButton(
+                  icon: Icon(Icons.favorite_border, color: Colors.red),
+                  onPressed: () async {
+                    if (authProvider.user == null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SignInPage()),
+                      );
+                    } else {
+                      await authProvider.addFavorite(data['url']);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Added to favorites!')),
+                      );
+                    }
+                  },
+                ),
+              ],
             ),
           ),
           if (_expandedStates[index])

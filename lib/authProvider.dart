@@ -1,43 +1,76 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthProvider with ChangeNotifier {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   User? _user;
-  User? get user => _user;
-  String? _userName;
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  List<String> _favorites = [];
 
-  AuthProvider() {
-    _initializeUser();
+  User? get user => _user;
+
+  List<String> get favorites => _favorites;
+
+  Future<void> fetchFavorites() async {
+    if (_user != null) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(_user!.uid).get();
+      if (userDoc.exists) {
+        _favorites = List<String>.from(userDoc.get('favorites') ?? []);
+        notifyListeners();
+      }
+    }
   }
 
-  String? get userName => _userName;
-
-  Future<void> _initializeUser() async {
-    _user = _auth.currentUser;
+  Future<void> addFavorite(String url) async {
     if (_user != null) {
-      DocumentSnapshot userDoc = await _firestore.collection('users').doc(_user!.uid).get();
-      _userName = userDoc.get('name');
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_user!.uid)
+            .set({
+          'favorites': FieldValue.arrayUnion([url]),
+        }, SetOptions(merge: true)); // Merge new data with existing ones
+
+        _favorites.add(url);
+        notifyListeners();
+      } catch (e) {
+        print('Error adding favorite: $e');
+      }
     }
-    notifyListeners();
+  }
+
+
+  Future<void> removeFavorite(String url) async {
+    if (_user != null) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user!.uid)
+          .update({
+        'favorites': FieldValue.arrayRemove([url])
+      });
+      _favorites.remove(url);
+      notifyListeners();
+    }
   }
 
   Future<UserCredential> loginUser(String email, String password) async {
     try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
       _user = userCredential.user;
 
-      // Fetch user name from Firestore
+      // Fetch user name and favorites from Firestore
       if (_user != null) {
-        DocumentSnapshot userDoc = await _firestore.collection('users').doc(_user!.uid).get();
-        _userName = userDoc.get('name');
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(_user!.uid).get();
+        if (userDoc.exists) {
+          String userName = userDoc.get('name');
+          await _user!.updateDisplayName(userName);
+          _favorites = List<String>.from(userDoc.get('favorites') ?? []);
+          print('User name: $userName');
+        } else {
+          print('User document does not exist.');
+        }
       }
 
       notifyListeners();
@@ -47,29 +80,33 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<void> logoutUser() async {
+    await FirebaseAuth.instance.signOut();
+    _user = null;
+    _favorites = [];
+    notifyListeners();
+  }
+
   Future<void> registerUser(String email, String password, String name) async {
     try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
       _user = userCredential.user;
 
-      // Save the user's name in Firestore
-      await _firestore.collection('users').doc(_user!.uid).set({'name': name});
+      // Save user name to Firestore and set displayName
+      if (_user != null) {
+        await FirebaseFirestore.instance.collection('users').doc(_user!.uid).set({
+          'name': name,
+          'favorites': [],
+        });
+        await _user!.updateDisplayName(name);
+      }
 
-      // Fetch the username after registration
-      _userName = name;
       notifyListeners();
     } catch (e) {
       throw Exception('Registration failed: $e');
     }
-  }
-
-  Future<void> logoutUser() async {
-    await _auth.signOut();
-    _user = null;
-    _userName = null;
-    notifyListeners();
   }
 }

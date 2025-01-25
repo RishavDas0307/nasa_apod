@@ -5,8 +5,9 @@ import 'firebase_options.dart';
 import 'auth.dart';
 import 'home.dart';
 import 'search.dart';
-import 'package:nasa_apod/authProvider.dart' as custom_auth_provider;
-import 'theme_provider.dart'; // Import the ThemeProvider
+import 'authProvider.dart' as custom_auth_provider;
+import 'theme_provider.dart';
+import 'favorites.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,7 +61,6 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-
 class MainPage extends StatefulWidget {
   final String username;
 
@@ -76,13 +76,14 @@ class _MainPageState extends State<MainPage> {
   final List<Widget> _pages = [
     Home(),
     Search(),
+    FavoritesPage(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        return true; // Exit the app
+        return true;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -122,11 +123,14 @@ class _MainPageState extends State<MainPage> {
               icon: Icon(Icons.search),
               label: 'Search',
             ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.favorite),
+              label: 'Favorites',
+            ),
           ],
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            // Toggle theme using ThemeProvider
             Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
           },
           backgroundColor: Theme.of(context).floatingActionButtonTheme.backgroundColor,

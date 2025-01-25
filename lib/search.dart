@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
-
+import 'package:provider/provider.dart';
+import 'authProvider.dart' as custom_auth_provider;
+import 'auth.dart';
 
 class Search extends StatefulWidget {
   const Search({super.key});
@@ -65,6 +67,8 @@ class _SearchState extends State<Search> {
   }
 
   Widget _buildCard(Map<String, dynamic> data) {
+    final authProvider = Provider.of<custom_auth_provider.AuthProvider>(context, listen: false);
+
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       margin: EdgeInsets.all(8),
@@ -101,9 +105,31 @@ class _SearchState extends State<Search> {
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Text(
-              data['explanation'] ?? '',
-              style: TextStyle(fontSize: 14),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  data['explanation']?.substring(0, 50) ?? '',
+                  style: TextStyle(fontSize: 14),
+                ),
+                IconButton(
+                  icon: Icon(Icons.favorite_border, color: Colors.red),
+                  onPressed: () async {
+                    if (authProvider.user == null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SignInPage()),
+                      );
+                    } else {
+                      await authProvider.addFavorite(data['url']);
+                      await authProvider.fetchFavorites(); // Ensure the favorites are updated
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Added to favorites!')),
+                      );
+                    }
+                  },
+                ),
+              ],
             ),
           ),
         ],

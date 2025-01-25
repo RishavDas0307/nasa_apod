@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1005411286344",
+    "project_id": "nasa-apod-rkd",
+    "storage_bucket": "nasa-apod-rkd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1005411286344:android:848928ba939ed985eb477d",
+        "android_client_info": {
+          "package_name": "com.example.nasa_apod"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVWrBtM0Ugbtn0SbCA8cv2xC5dJ9rhw8E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"android":{"default":{"projectId":"nasa-apod-rkd","appId":"1:1005411286344:android:848928ba939ed985eb477d","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"nasa-apod-rkd","configurations":{"android":"1:1005411286344:android:848928ba939ed985eb477d","web":"1:1005411286344:web:7047888cdde23b9feb477d"}}}}}}

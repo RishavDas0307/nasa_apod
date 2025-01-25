@@ -52,7 +52,7 @@ class _HomeState extends State<Home> {
   Widget _buildCard(Map<String, dynamic> data, int index) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      margin: EdgeInsets.all(8),
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 4,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,7 +81,7 @@ class _HomeState extends State<Home> {
               child: Text(
                 data['title'] ?? 'No Title',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.blue,
                 ),
@@ -89,7 +89,7 @@ class _HomeState extends State<Home> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Text(
               data['date'] ?? '',
               style: TextStyle(fontSize: 14, color: Colors.grey),
@@ -111,15 +111,17 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('NASA: APOD - Last 7 Days')),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-        itemCount: _last7DaysData.length,
-        itemBuilder: (context, index) {
-          final data = _last7DaysData[index];
-          return _buildCard(data, index);
-        },
+          : Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ListView.builder(
+          itemCount: _last7DaysData.length,
+          itemBuilder: (context, index) {
+            final data = _last7DaysData[index];
+            return _buildCard(data, index);
+          },
+        ),
       ),
     );
   }

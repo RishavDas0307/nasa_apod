@@ -26,10 +26,9 @@ class AuthProvider with ChangeNotifier {
         await FirebaseFirestore.instance
             .collection('users')
             .doc(_user!.uid)
-            .set({
-          'favorites': FieldValue.arrayUnion([url]),
-        }, SetOptions(merge: true)); // Merge new data with existing ones
-
+            .update({
+          'favorites': FieldValue.arrayUnion([url])
+        });
         _favorites.add(url);
         notifyListeners();
       } catch (e) {
@@ -37,7 +36,6 @@ class AuthProvider with ChangeNotifier {
       }
     }
   }
-
 
   Future<void> removeFavorite(String url) async {
     if (_user != null) {
@@ -64,10 +62,15 @@ class AuthProvider with ChangeNotifier {
       if (_user != null) {
         DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(_user!.uid).get();
         if (userDoc.exists) {
-          String userName = userDoc.get('name');
-          await _user!.updateDisplayName(userName);
-          _favorites = List<String>.from(userDoc.get('favorites') ?? []);
-          print('User name: $userName');
+          var userData = userDoc.data() as Map<String, dynamic>?;
+          if (userData != null && userData.containsKey('name')) {
+            String userName = userData['name'];
+            await _user!.updateDisplayName(userName);
+            print('User name: $userName');
+          } else {
+            print('Name field does not exist.');
+          }
+          _favorites = List<String>.from(userData?['favorites'] ?? []);
         } else {
           print('User document does not exist.');
         }

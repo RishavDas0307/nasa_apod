@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'home.dart';
 import 'search.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'auth.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(MyApp());
 }
+
 
 class MyApp extends StatefulWidget {
   @override
@@ -56,6 +64,7 @@ class _MainPageState extends State<MainPage> {
   final List<Widget> _pages = [
     Home(),
     Search(),
+    AuthPage()
   ];
 
   @override
@@ -127,8 +136,19 @@ class _MainPageState extends State<MainPage> {
                 });
               },
             ),
+            ListTile(
+              leading: Icon(Icons.login),
+              title: Text('Authentication'),
+              onTap: () {
+                Navigator.pop(context);
+                setState(() {
+                  _currentIndex = 2; // Update index for AuthPage
+                });
+              },
+            ),
           ],
         ),
+
       ),
     );
   }

@@ -72,7 +72,7 @@ class _HomeState extends State<Home> {
                 fit: BoxFit.cover,
               )
                   : null,
-              color: data['media_type'] == 'video' ? Colors.black : null,
+              color: data['media_type'] == 'video' ? Colors.white12 : null,
             ),
           ),
           GestureDetector(

@@ -33,7 +33,7 @@ class _SignInPageState extends State<SignInPage> {
         context,
         MaterialPageRoute(
           builder: (context) => MainPage(
-            username: userCredential.user?.displayName ?? 'Guest',
+            username: userCredential.user?.displayName ?? 'Human',
           ),
         ),
       );

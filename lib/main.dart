@@ -49,7 +49,7 @@ class _MyAppState extends State<MyApp> {
                   home: authProvider.user == null
                       ? SignInPage()
                       : MainPage(
-                    username: authProvider.user?.displayName ?? 'Guest',
+                    username: authProvider.user?.displayName ?? 'Human',
                   ),
                 );
               },
@@ -92,7 +92,7 @@ class _MainPageState extends State<MainPage> {
             children: [
               Text('👋🏼 Hello, ${widget.username}'),
               IconButton(
-                icon: Icon(Icons.logout),
+                icon: Icon(Icons.account_circle_sharp),
                 onPressed: () async {
                   await Provider.of<custom_auth_provider.AuthProvider>(context, listen: false).logoutUser();
                   Navigator.pushReplacement(

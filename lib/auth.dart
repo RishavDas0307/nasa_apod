@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'authProvider.dart' as custom_auth_provider; // Ensure this import is correct
-import 'main.dart'; // Ensure this import is correct
+import 'authProvider.dart' as custom_auth_provider;
+import 'main.dart';
 
 class SignInPage extends StatefulWidget {
   @override

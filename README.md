@@ -83,11 +83,16 @@ Follow these steps to set up Firebase for your Flutter project:
    - `provider`: For state management
 
 ### 7. Screenshots
-![Landing Page](https://ibb.co/1Q7nz98)
-![Home_Page_0](https://ibb.co/5FcpFj6)
-![Home_Page_1](https://ibb.co/bHFwnz0)
-![Search_Page](https://ibb.co/rb5KsSB)
-![Fav_Page_Light_Mode](https://ibb.co/QJRLLvp)
+[url=https://ibb.co/1Q7nz98][img]https://i.ibb.co/8sNBYj6/landing-page.png[/img][/url]
+[url=https://ibb.co/rb5KsSB][img]https://i.ibb.co/7grx453/search-page.png[/img][/url]
+[url=https://ibb.co/QJRLLvp][img]https://i.ibb.co/grpNNZm/favourites-page-light-mode.png[/img][/url]
+[url=https://ibb.co/5FcpFj6][img]https://i.ibb.co/SrvYrmP/home-page-0.png[/img][/url]
+[url=https://ibb.co/bHFwnz0][img]https://i.ibb.co/CJ6CFhc/home-page-1.png[/img][/url]
+![Landing Page](https://i.ibb.co/8sNBYj6/landing-page.png)
+![Home_Page_0](https://i.ibb.co/SrvYrmP/home-page-0.png)
+![Home_Page_1](https://i.ibb.co/CJ6CFhc/home-page-1.png)
+![Search_Page](https://i.ibb.co/7grx453/search-page.png)
+![Fav_Page_Light_Mode](https://i.ibb.co/grpNNZm/favourites-page-light-mode.png)
 
 ### 8. Acknowledgments
    - Thanks to NASA for providing the Astronomy Picture of the Day (APOD) API.

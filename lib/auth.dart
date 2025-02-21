@@ -12,9 +12,11 @@ class SignInPage extends StatefulWidget {
 class _SignInPageState extends State<SignInPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  String _message = '';
+  bool _isLoading = false;
+  bool _obscurePassword = true;
 
   Future<void> _signIn() async {
+    setState(() => _isLoading = true);
     try {
       UserCredential userCredential = await Provider.of<custom_auth_provider.AuthProvider>(
         context,
@@ -24,63 +26,82 @@ class _SignInPageState extends State<SignInPage> {
         _passwordController.text,
       );
 
-      setState(() {
-        _message = 'Sign-in successful: ${userCredential.user?.email}';
-      });
-
-      // Navigate to the main page after successful sign-in
+      // Navigate after successful sign-in
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => MainPage(
-            username: userCredential.user?.displayName ?? 'Human',
+            username: userCredential.user?.displayName ?? 'User',
           ),
         ),
       );
     } on FirebaseAuthException catch (e) {
-      setState(() {
-        _message = 'Error: ${e.message}';
-      });
+      _showSnackbar('Error: ${e.message}');
     } catch (e) {
-      setState(() {
-        _message = 'Error: $e';
-      });
+      _showSnackbar('Error: $e');
+    } finally {
+      setState(() => _isLoading = false);
     }
+  }
+
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Sign In')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: InputDecoration(labelText: 'Password', border: OutlineInputBorder()),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(onPressed: _signIn, child: Text('Sign In')),
-            SizedBox(height: 20),
-            Text(_message, style: TextStyle(color: Colors.red)),
-            SizedBox(height: 20),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SignUpPage()),
-                );
-              },
-              child: Text('Don\'t have an account? Sign Up'),
-            ),
-          ],
+      body: Center(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Welcome Back!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              SizedBox(height: 20),
+              TextField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email),
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: _passwordController,
+                obscureText: _obscurePassword,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  ),
+                  border: OutlineInputBorder(),
+                ),
+                textInputAction: TextInputAction.done,
+              ),
+              SizedBox(height: 24),
+              _isLoading
+                  ? CircularProgressIndicator()
+                  : ElevatedButton(
+                onPressed: _signIn,
+                style: ElevatedButton.styleFrom(minimumSize: Size(double.infinity, 50)),
+                child: Text('Sign In'),
+              ),
+              SizedBox(height: 16),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => SignUpPage()));
+                },
+                child: Text("Don't have an account? Create one"),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -96,9 +117,11 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
-  String _message = '';
+  bool _isLoading = false;
+  bool _obscurePassword = true;
 
   Future<void> _signUp() async {
+    setState(() => _isLoading = true);
     try {
       await Provider.of<custom_auth_provider.AuthProvider>(
         context,
@@ -112,46 +135,83 @@ class _SignUpPageState extends State<SignUpPage> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => MainPage(
-            username: _nameController.text,
-          ),
+          builder: (context) => MainPage(username: _nameController.text),
         ),
       );
     } catch (e) {
-      setState(() {
-        _message = e.toString();
-      });
+      _showSnackbar('Error: $e');
+    } finally {
+      setState(() => _isLoading = false);
     }
+  }
+
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Sign Up')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: InputDecoration(labelText: 'Password', border: OutlineInputBorder()),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(labelText: 'Name', border: OutlineInputBorder()),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(onPressed: _signUp, child: Text('Sign Up')),
-            SizedBox(height: 20),
-            Text(_message, style: TextStyle(color: Colors.red)),
-          ],
+      body: Center(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Text('Create Account', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              SizedBox(height: 20),
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: 'Full Name',
+                  prefixIcon: Icon(Icons.person),
+                  border: OutlineInputBorder(),
+                ),
+                textInputAction: TextInputAction.next,
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email),
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: _passwordController,
+                obscureText: _obscurePassword,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  ),
+                  border: OutlineInputBorder(),
+                ),
+                textInputAction: TextInputAction.done,
+              ),
+              SizedBox(height: 24),
+              _isLoading
+                  ? CircularProgressIndicator()
+                  : ElevatedButton(
+                onPressed: _signUp,
+                style: ElevatedButton.styleFrom(minimumSize: Size(double.infinity, 50)),
+                child: Text('Create Account'),
+              ),
+              SizedBox(height: 16),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('Already have an account? Sign In'),
+              ),
+            ],
+          ),
         ),
       ),
     );

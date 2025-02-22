@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+import 'ProfilePage.dart';
 import 'firebase_options.dart';
 import 'auth.dart';
 import 'home.dart';
@@ -49,7 +50,7 @@ class _MyAppState extends State<MyApp> {
                   home: authProvider.user == null
                       ? SignInPage()
                       : MainPage(
-                    username: authProvider.user?.displayName ?? 'Human',
+                    username: authProvider.user?.displayName ?? 'User',
                   ),
                 );
               },
@@ -73,11 +74,33 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = [
-    Home(),
-    Search(),
-    FavoritesPage(),
-  ];
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      Home(username: widget.username),
+      Search(),
+      FavoritesPage(),
+      ProfilePage(),
+    ];
+  }
+
+  String _getTitle() {
+    switch (_currentIndex) {
+      case 0:
+        return "Hello, ${widget.username}";
+      case 1:
+        return "Search";
+      case 2:
+        return "Favorites";
+      case 3:
+        return "Profile";
+      default:
+        return "";
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,24 +110,22 @@ class _MainPageState extends State<MainPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('👋🏼 Hello, ${widget.username}'),
-              IconButton(
-                icon: Icon(Icons.account_circle_sharp),
-                onPressed: () async {
-                  await Provider.of<custom_auth_provider.AuthProvider>(context, listen: false).logoutUser();
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => SignInPage()),
-                  );
-                },
-              ),
-            ],
-          ),
+          title: Text(_getTitle()), // Set AppBar title dynamically
+          actions: [
+            IconButton(
+              icon: Icon(Icons.account_circle_sharp),
+              onPressed: () async {
+                await Provider.of<custom_auth_provider.AuthProvider>(context, listen: false)
+                    .logoutUser();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => SignInPage()),
+                );
+              },
+            ),
+          ],
         ),
-        body: _pages[_currentIndex],
+        body: _pages[_currentIndex], // Removed extra title from body
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (index) {
@@ -126,6 +147,10 @@ class _MainPageState extends State<MainPage> {
             BottomNavigationBarItem(
               icon: Icon(Icons.favorite),
               label: 'Favorites',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Profile',
             ),
           ],
         ),

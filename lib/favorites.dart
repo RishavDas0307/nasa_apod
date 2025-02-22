@@ -23,9 +23,6 @@ class _FavoritesPageState extends State<FavoritesPage> {
     Provider.of<custom_auth_provider.AuthProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Favorites'),
-      ),
       body: authProvider.favorites.isEmpty
           ? Center(child: Text('No favorites added yet.'))
           : ListView.builder(

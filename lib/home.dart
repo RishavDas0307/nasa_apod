@@ -7,7 +7,9 @@ import 'authProvider.dart' as custom_auth_provider;
 import 'auth.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  final String username;
+
+  const Home({super.key, required this.username});
 
   @override
   State<Home> createState() => _HomeState();
@@ -136,18 +138,16 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: ListView.builder(
-          itemCount: _last7DaysData.length,
-          itemBuilder: (context, index) {
-            final data = _last7DaysData[index];
-            return _buildCard(data, index);
-          },
-        ),
+    return _isLoading
+        ? Center(child: CircularProgressIndicator())
+        : Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: ListView.builder(
+        itemCount: _last7DaysData.length,
+        itemBuilder: (context, index) {
+          final data = _last7DaysData[index];
+          return _buildCard(data, index);
+        },
       ),
     );
   }

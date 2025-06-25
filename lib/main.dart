@@ -36,17 +36,9 @@ class _MyAppState extends State<MyApp> {
               builder: (context, authProvider, _) {
                 return MaterialApp(
                   debugShowCheckedModeBanner: false,
-                  theme: themeProvider.isDarkMode
-                      ? ThemeData.dark().copyWith(
-                    primaryColor: Colors.blueGrey,
-                    scaffoldBackgroundColor: Colors.black,
-                    appBarTheme: AppBarTheme(color: Colors.blueGrey),
-                  )
-                      : ThemeData.light().copyWith(
-                    primaryColor: Colors.blue,
-                    scaffoldBackgroundColor: Colors.white,
-                    appBarTheme: AppBarTheme(color: Colors.blue),
-                  ),
+                  theme: themeProvider.lightTheme,
+                  darkTheme: themeProvider.darkTheme,
+                  themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
                   home: authProvider.user == null
                       ? SignInPage()
                       : MainPage(
@@ -80,52 +72,19 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     _pages = [
-      Home(username: widget.username),
-      Search(),
-      FavoritesPage(),
-      ProfilePage(),
+      Home(username: widget.username), // no AppBar here
+      Search(),                        // has its own AppBar
+      FavoritesPage(),                 // has its own AppBar
+      ProfilePage(),                   // has its own AppBar
     ];
-  }
-
-  String _getTitle() {
-    switch (_currentIndex) {
-      case 0:
-        return "Hello, ${widget.username}";
-      case 1:
-        return "Search";
-      case 2:
-        return "Favorites";
-      case 3:
-        return "Profile";
-      default:
-        return "";
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async {
-        return true;
-      },
+      onWillPop: () async => true,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(_getTitle()), // Set AppBar title dynamically
-          actions: [
-            IconButton(
-              icon: Icon(Icons.account_circle_sharp),
-              onPressed: () async {
-                await Provider.of<custom_auth_provider.AuthProvider>(context, listen: false)
-                    .logoutUser();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => SignInPage()),
-                );
-              },
-            ),
-          ],
-        ),
-        body: _pages[_currentIndex], // Removed extra title from body
+        body: _pages[_currentIndex],
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (index) {
@@ -136,29 +95,16 @@ class _MainPageState extends State<MainPage> {
           selectedItemColor: Colors.blue,
           unselectedItemColor: Colors.grey,
           items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.search),
-              label: 'Search',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.favorite),
-              label: 'Favorites',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profile',
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
+            BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Favorites'),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
           },
-          backgroundColor: Theme.of(context).floatingActionButtonTheme.backgroundColor,
           tooltip: 'Toggle Theme',
           child: Icon(
             Theme.of(context).brightness == Brightness.dark

@@ -79,29 +79,53 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 36.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GestureDetector(
-              onTap: _pickAndUploadImage,
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage: _profileImageUrl != null
-                    ? NetworkImage(_profileImageUrl!)
-                    : AssetImage("assets/default_avatar.jpeg") as ImageProvider,
+            SizedBox(height: 32),
+            Text(
+              'Profile',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 32),
+            Center(
+              child: GestureDetector(
+                onTap: _pickAndUploadImage,
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundImage: _profileImageUrl != null
+                      ? NetworkImage(_profileImageUrl!)
+                      : AssetImage("assets/default_avatar.jpeg") as ImageProvider,
+                ),
+              ),
+            ),
+            SizedBox(height: 28),
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: "Name",
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
             ),
             SizedBox(height: 20),
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(labelText: "Name", border: OutlineInputBorder()),
+            Text(
+              "Email: $_email",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 20),
-            Text("Email: $_email", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _updateProfile,
-              child: Text("Update Profile"),
+            SizedBox(height: 28),
+            Center(
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _updateProfile,
+                  child: Text("Update Profile"),
+                ),
+              ),
             ),
           ],
         ),

@@ -98,7 +98,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   /// Logs out the user and clears local state
-  Future<void> logoutUser() async {
+  Future<void> signOut() async {
     await FirebaseAuth.instance.signOut();
     _user = null;
     _favorites = [];

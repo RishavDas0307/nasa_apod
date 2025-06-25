@@ -9,8 +9,9 @@ import 'theme_provider.dart'; // Import ThemeProvider
 
 class Home extends StatefulWidget {
   final String username;
+  final ScrollController scrollController; // Accept ScrollController
 
-  const Home({super.key, required this.username});
+  const Home({super.key, required this.username, required this.scrollController}); // Constructor update
 
   @override
   State<Home> createState() => _HomeState();
@@ -22,8 +23,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   List<bool> _expandedStates = [];
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
-  late ScrollController _scrollController; // Declare ScrollController
-  bool _showScrollToTopButton = false; // State for button visibility
 
   @override
   void initState() {
@@ -32,35 +31,16 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       duration: Duration(milliseconds: 1000),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    _fadeAnimation = Tween<double>(begin: 0.9, end: 1.1).animate(
       CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic),
     );
     _fetchLast7DaysPictures();
-
-    _scrollController = ScrollController(); // Initialize ScrollController
-    _scrollController.addListener(_scrollListener); // Add listener
   }
 
   @override
   void dispose() {
     _fadeController.dispose();
-    _scrollController.removeListener(_scrollListener); // Remove listener
-    _scrollController.dispose(); // Dispose controller
     super.dispose();
-  }
-
-  // Listener for scroll events
-  void _scrollListener() {
-    // Determine when to show/hide the scroll-to-top button
-    if (_scrollController.offset >= 200 && !_showScrollToTopButton) {
-      setState(() {
-        _showScrollToTopButton = true;
-      });
-    } else if (_scrollController.offset < 200 && _showScrollToTopButton) {
-      setState(() {
-        _showScrollToTopButton = false;
-      });
-    }
   }
 
   Future<void> _fetchLast7DaysPictures() async {
@@ -612,14 +592,28 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       backgroundColor: colors.primary,
       body: _isLoading
           ? Center(
-        child: CircularProgressIndicator(
-          color: colors.accent,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              color: colors.accent,
+            ),
+            SizedBox(height: 20),
+            Text(
+              'Loading the Cosmos...',
+              style: TextStyle(
+                color: colors.onSurfaceVariant.withOpacity(0.8),
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       )
           : FadeTransition(
         opacity: _fadeAnimation,
         child: CustomScrollView(
-          controller: _scrollController, // Attach the scroll controller
+          controller: widget.scrollController, // Use the passed-in scroll controller
           slivers: [
             SliverToBoxAdapter(
               child: Column(
@@ -643,26 +637,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           ],
         ),
       ),
-      // Floating Action Button for "Scroll to Top"
-      floatingActionButton: Padding( // Added Padding widget
-        padding: const EdgeInsets.only(bottom: 70.0), // Adjust this value to move it up
-        child: AnimatedOpacity(
-          opacity: _showScrollToTopButton ? 1.0 : 0.0, // Control visibility with opacity
-          duration: const Duration(milliseconds: 300), // Smooth transition
-          child: FloatingActionButton(
-            onPressed: () {
-              _scrollController.animateTo(
-                0, // Scroll to the top
-                duration: const Duration(milliseconds: 500), // Animation duration
-                curve: Curves.easeInOut, // Smooth curve
-              );
-            },
-            backgroundColor: colors.accent, // Use accent color for button background
-            foregroundColor: colors.onButtonPrimary, // Use onButtonPrimary for icon color
-            child: const Icon(Icons.arrow_upward),
-          ),
-        ),
-      ),
+      // No FloatingActionButton here anymore
     );
   }
 }

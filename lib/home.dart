@@ -22,6 +22,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   List<bool> _expandedStates = [];
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
+  late ScrollController _scrollController; // Declare ScrollController
+  bool _showScrollToTopButton = false; // State for button visibility
 
   @override
   void initState() {
@@ -34,12 +36,31 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic),
     );
     _fetchLast7DaysPictures();
+
+    _scrollController = ScrollController(); // Initialize ScrollController
+    _scrollController.addListener(_scrollListener); // Add listener
   }
 
   @override
   void dispose() {
     _fadeController.dispose();
+    _scrollController.removeListener(_scrollListener); // Remove listener
+    _scrollController.dispose(); // Dispose controller
     super.dispose();
+  }
+
+  // Listener for scroll events
+  void _scrollListener() {
+    // Determine when to show/hide the scroll-to-top button
+    if (_scrollController.offset >= 200 && !_showScrollToTopButton) {
+      setState(() {
+        _showScrollToTopButton = true;
+      });
+    } else if (_scrollController.offset < 200 && _showScrollToTopButton) {
+      setState(() {
+        _showScrollToTopButton = false;
+      });
+    }
   }
 
   Future<void> _fetchLast7DaysPictures() async {
@@ -90,7 +111,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     }
   }
 
-  // This widget builds the "Hello, user" row for the top SliverAppBar
+  // This widget builds the "Hello, user" row for the top header
   Widget _buildMainHeaderContent() {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final colors = themeProvider.colors;
@@ -598,8 +619,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           : FadeTransition(
         opacity: _fadeAnimation,
         child: CustomScrollView(
+          controller: _scrollController, // Attach the scroll controller
           slivers: [
-            // Combine both header sections into a single SliverToBoxAdapter for full scrolling
             SliverToBoxAdapter(
               child: Column(
                 children: [
@@ -620,6 +641,26 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               padding: EdgeInsets.only(bottom: 80),
             ),
           ],
+        ),
+      ),
+      // Floating Action Button for "Scroll to Top"
+      floatingActionButton: Padding( // Added Padding widget
+        padding: const EdgeInsets.only(bottom: 70.0), // Adjust this value to move it up
+        child: AnimatedOpacity(
+          opacity: _showScrollToTopButton ? 1.0 : 0.0, // Control visibility with opacity
+          duration: const Duration(milliseconds: 300), // Smooth transition
+          child: FloatingActionButton(
+            onPressed: () {
+              _scrollController.animateTo(
+                0, // Scroll to the top
+                duration: const Duration(milliseconds: 500), // Animation duration
+                curve: Curves.easeInOut, // Smooth curve
+              );
+            },
+            backgroundColor: colors.accent, // Use accent color for button background
+            foregroundColor: colors.onButtonPrimary, // Use onButtonPrimary for icon color
+            child: const Icon(Icons.arrow_upward),
+          ),
         ),
       ),
     );

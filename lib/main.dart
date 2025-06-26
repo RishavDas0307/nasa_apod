@@ -71,6 +71,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   late ScrollController _homeScrollController;
   bool _showScrollToTopButton = false;
 
+
   @override
   void initState() {
     super.initState();
@@ -88,8 +89,8 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
           (index) => AnimationController(
         vsync: this,
         duration: Duration(milliseconds: 200),
-        lowerBound: 0.0, // fixed
-        upperBound: 1.0, // fixed
+        lowerBound: 0.0,
+        upperBound: 1.0,
       ),
     );
     _controllers[_currentIndex].forward();
@@ -116,35 +117,46 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   }
 
   void _onItemTapped(int index) {
-    if (_currentIndex != index) {
-      _controllers[_currentIndex].reverse();
-      setState(() {
-        _currentIndex = index;
-        if (_currentIndex != 0) {
+    if (_currentIndex == index) return;
+
+    // Store the previous index
+    int previousIndex = _currentIndex;
+
+    setState(() {
+      _currentIndex = index;
+      if (_currentIndex != 0) {
+        // Reset scroll position and button when leaving home
+        if (_homeScrollController.hasClients) {
           _homeScrollController.jumpTo(0);
-          _showScrollToTopButton = false;
         }
-      });
-      _controllers[index].forward();
-    }
+        _showScrollToTopButton = false;
+      }
+    });
+
+    // Handle animations
+    _controllers[previousIndex].reverse();
+    _controllers[index].forward();
   }
 
   Widget _buildNavIcon(IconData icon, int index, AppColorScheme colors) {
     bool isSelected = index == _currentIndex;
 
-    return ScaleTransition(
-      scale: Tween<double>(begin: 0.9, end: 1.1).animate(
-        CurvedAnimation(parent: _controllers[index], curve: Curves.easeOut),
-      ),
-      child: IconButton(
-        onPressed: () => _onItemTapped(index),
-        icon: Icon(
-          icon,
-          color: isSelected ? colors.accent : colors.onSurfaceVariant,
-          size: 26,
-        ),
-        splashRadius: 24,
-      ),
+    return AnimatedBuilder(
+      animation: _controllers[index],
+      builder: (context, child) {
+        return Transform.scale(
+          scale: 0.9 + (_controllers[index].value * 0.2), // Scale from 0.9 to 1.1
+          child: IconButton(
+            onPressed: () => _onItemTapped(index),
+            icon: Icon(
+              icon,
+              color: isSelected ? colors.accent : colors.onSurfaceVariant,
+              size: 26,
+            ),
+            splashRadius: 24,
+          ),
+        );
+      },
     );
   }
 
@@ -212,11 +224,13 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                   child: FloatingActionButton(
                     heroTag: "scrollToTopBtn",
                     onPressed: () {
-                      _homeScrollController.animateTo(
-                        0,
-                        duration: const Duration(milliseconds: 500),
-                        curve: Curves.easeInOut,
-                      );
+                      if (_homeScrollController.hasClients) {
+                        _homeScrollController.animateTo(
+                          0,
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.easeInOut,
+                        );
+                      }
                     },
                     backgroundColor: colors.accent,
                     foregroundColor: colors.onButtonPrimary,

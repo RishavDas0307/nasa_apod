@@ -42,30 +42,32 @@ class _CosmosCardState extends State<CosmosCard> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final colors = themeProvider.colors;
+    final isLightTheme = !themeProvider.isDarkMode;
 
     return AnimatedContainer(
       duration: Duration(milliseconds: 400),
       curve: Curves.easeOutCubic,
       margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
-        color: colors.surface.withOpacity(0.95),
+        color: colors.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: colors.shadow.withOpacity(0.08),
-            blurRadius: 16,
-            offset: Offset(0, 8),
-            spreadRadius: 0,
+            color: colors.shadow.withOpacity(isLightTheme ? 0.12 : 0.08),
+            blurRadius: isLightTheme ? 20 : 16,
+            offset: Offset(0, isLightTheme ? 10 : 8),
+            spreadRadius: isLightTheme ? 2 : 0,
           ),
-          BoxShadow(
-            color: colors.shadow.withOpacity(0.04),
-            blurRadius: 6,
-            offset: Offset(0, 2),
-            spreadRadius: 0,
-          ),
+          if (isLightTheme)
+            BoxShadow(
+              color: colors.shadow.withOpacity(0.06),
+              blurRadius: 8,
+              offset: Offset(0, 4),
+              spreadRadius: 0,
+            ),
         ],
         border: Border.all(
-          color: colors.outline.withOpacity(0.1),
+          color: colors.outline.withOpacity(isLightTheme ? 0.15 : 0.1),
           width: 1,
         ),
       ),
@@ -91,8 +93,8 @@ class _CosmosCardState extends State<CosmosCard> {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              colors.secondary.withOpacity(0.3),
-                              colors.secondary.withOpacity(0.5),
+                              colors.accent.withOpacity(0.2),
+                              colors.accent.withOpacity(0.4),
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
@@ -116,8 +118,8 @@ class _CosmosCardState extends State<CosmosCard> {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              colors.errorContainer.withOpacity(0.4),
-                              colors.errorContainer.withOpacity(0.6),
+                              colors.errorContainer.withOpacity(0.3),
+                              colors.errorContainer.withOpacity(0.5),
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
@@ -130,13 +132,13 @@ class _CosmosCardState extends State<CosmosCard> {
                               Icon(
                                 Icons.error_outline,
                                 size: 48,
-                                color: colors.onErrorContainer.withOpacity(0.8),
+                                color: colors.onErrorContainer,
                               ),
                               SizedBox(height: 12),
                               Text(
                                 'Failed to load image',
                                 style: TextStyle(
-                                  color: colors.onSurfaceVariant.withOpacity(0.9),
+                                  color: colors.onErrorContainer,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -168,16 +170,20 @@ class _CosmosCardState extends State<CosmosCard> {
                           Container(
                             padding: EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: colors.surfaceElevated.withOpacity(0.2),
+                              color: colors.surface.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(50),
                             ),
-                            child: Icon(Icons.play_circle_outline, size: 64, color: colors.onSurface.withOpacity(0.9)),
+                            child: Icon(
+                              Icons.play_circle_outline,
+                              size: 64,
+                              color: isLightTheme ? Colors.white : colors.onSurface,
+                            ),
                           ),
                           SizedBox(height: 16),
                           Text(
                             'Video Content',
                             style: TextStyle(
-                              color: colors.onSurface.withOpacity(0.95),
+                              color: isLightTheme ? Colors.white : colors.onSurface,
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
                             ),
@@ -194,7 +200,18 @@ class _CosmosCardState extends State<CosmosCard> {
                 left: 0,
                 right: 0,
                 child: Container(
-                  padding: EdgeInsets.fromLTRB(20, 20, 20, 20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.3),
+                        Colors.black.withOpacity(0.6),
+                      ],
+                    ),
+                  ),
+                  padding: EdgeInsets.fromLTRB(20, 30, 20, 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -203,12 +220,12 @@ class _CosmosCardState extends State<CosmosCard> {
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
-                          color: colors.onPrimary.withOpacity(0.95),
+                          color: Colors.white,
                           shadows: [
                             Shadow(
                               offset: Offset(0, 2),
                               blurRadius: 4,
-                              color: colors.shadow.withOpacity(0.6),
+                              color: Colors.black.withOpacity(0.6),
                             ),
                           ],
                           height: 1.2,
@@ -216,21 +233,25 @@ class _CosmosCardState extends State<CosmosCard> {
                       ),
                       SizedBox(height: 8),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: colors.surfaceElevated.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.white.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1,
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.calendar_today, size: 14, color: colors.onPrimary.withOpacity(0.9)),
+                            Icon(Icons.calendar_today, size: 14, color: Colors.white),
                             SizedBox(width: 6),
                             Text(
                               _formatDate(widget.data['date'] ?? ''),
                               style: TextStyle(
                                 fontSize: 13,
-                                color: colors.onPrimary.withOpacity(0.9),
+                                color: Colors.white,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -263,7 +284,7 @@ class _CosmosCardState extends State<CosmosCard> {
                             color: colors.surfaceContainer,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: colors.outline.withOpacity(0.1),
+                              color: colors.outline.withOpacity(isLightTheme ? 0.2 : 0.1),
                               width: 1,
                             ),
                           ),
@@ -272,7 +293,7 @@ class _CosmosCardState extends State<CosmosCard> {
                             style: TextStyle(
                               fontSize: 15,
                               height: 1.7,
-                              color: colors.onSurfaceVariant.withOpacity(0.9),
+                              color: colors.onSurfaceVariant,
                               fontWeight: FontWeight.w400,
                             ),
                           ),
@@ -286,10 +307,13 @@ class _CosmosCardState extends State<CosmosCard> {
                     GestureDetector(
                       onTap: widget.onToggleExpand,
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [
+                            colors: isLightTheme ? [
+                              colors.buttonSecondary,
+                              colors.buttonSecondary.withOpacity(0.8),
+                            ] : [
                               colors.buttonSecondary.withOpacity(0.08),
                               colors.buttonSecondary.withOpacity(0.12),
                             ],
@@ -298,14 +322,14 @@ class _CosmosCardState extends State<CosmosCard> {
                           ),
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
-                            color: colors.outline.withOpacity(0.25),
+                            color: colors.outline.withOpacity(isLightTheme ? 0.3 : 0.25),
                             width: 1,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: colors.shadow.withOpacity(0.08),
-                              blurRadius: 6,
-                              offset: Offset(0, 2),
+                              color: colors.shadow.withOpacity(isLightTheme ? 0.12 : 0.08),
+                              blurRadius: isLightTheme ? 8 : 6,
+                              offset: Offset(0, isLightTheme ? 3 : 2),
                             ),
                           ],
                         ),
@@ -315,14 +339,14 @@ class _CosmosCardState extends State<CosmosCard> {
                             Icon(
                               widget.isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
                               size: 20,
-                              color: colors.onSecondary.withOpacity(0.9),
+                              color: isLightTheme ? colors.onButtonSecondary : colors.onSecondary,
                             ),
                             SizedBox(width: 8),
                             Text(
                               widget.isExpanded ? 'Show Less' : 'Read More',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: colors.onSecondary.withOpacity(0.9),
+                                color: isLightTheme ? colors.onButtonSecondary : colors.onSecondary,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -332,25 +356,27 @@ class _CosmosCardState extends State<CosmosCard> {
                     ),
                     Container(
                       decoration: BoxDecoration(
-                        color: colors.surface.withOpacity(0.9),
+                        color: colors.surface,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: colors.shadow.withOpacity(0.06),
-                            blurRadius: 12,
-                            offset: Offset(0, 4),
-                            spreadRadius: 2,
+                            color: colors.shadow.withOpacity(isLightTheme ? 0.15 : 0.06),
+                            blurRadius: isLightTheme ? 15 : 12,
+                            offset: Offset(0, isLightTheme ? 5 : 4),
+                            spreadRadius: isLightTheme ? 1 : 2,
                           ),
                         ],
                         border: Border.all(
-                          color: colors.outline.withOpacity(0.2),
+                          color: colors.outline.withOpacity(isLightTheme ? 0.25 : 0.2),
                           width: 1,
                         ),
                       ),
                       child: IconButton(
                         icon: Icon(Icons.favorite_border, size: 20),
                         onPressed: widget.onFavoritePressed,
-                        color: colors.onSurface.withOpacity(0.85),
+                        color: colors.onSurface.withOpacity(isLightTheme ? 0.7 : 0.85),
+                        splashColor: colors.accent.withOpacity(0.2),
+                        highlightColor: colors.accent.withOpacity(0.1),
                       ),
                     ),
                   ],

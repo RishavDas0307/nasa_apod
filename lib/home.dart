@@ -5,13 +5,14 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'authProvider.dart' as custom_auth_provider;
 import 'auth.dart';
-import 'theme_provider.dart'; // Import ThemeProvider
+import 'theme_provider.dart';
+import 'cosmos_card.dart'; // Import the CosmosCard widget
 
 class Home extends StatefulWidget {
   final String username;
-  final ScrollController scrollController; // Accept ScrollController
+  final ScrollController scrollController;
 
-  const Home({super.key, required this.username, required this.scrollController}); // Constructor update
+  const Home({super.key, required this.username, required this.scrollController});
 
   @override
   State<Home> createState() => _HomeState();
@@ -87,17 +88,16 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     } else if (comparisonDate == yesterday) {
       return 'Yesterday';
     } else {
-      return DateFormat('MMM dd, EEEE').format(date); // Adjusted format
+      return DateFormat('MMM dd, EEEE').format(date);
     }
   }
 
-  // This widget builds the "Hello, user" row for the top header
   Widget _buildMainHeaderContent() {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final colors = themeProvider.colors;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 48, 20, 0), // Adjust top padding for status bar and spacing
+      padding: EdgeInsets.fromLTRB(20, 48, 20, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -140,13 +140,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 
-  // This widget builds the "Discover the cosmos..." box for SliverToBoxAdapter
   Widget _buildDiscoverCosmosBoxContent() {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final colors = themeProvider.colors;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 24, 20, 24), // Padding around the box for spacing
+      padding: EdgeInsets.fromLTRB(20, 24, 20, 24),
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         decoration: BoxDecoration(
@@ -254,332 +253,23 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   }
 
   Widget _buildCard(Map<String, dynamic> data, int index) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final colors = themeProvider.colors;
-
-    return AnimatedContainer(
-      duration: Duration(milliseconds: 400),
-      curve: Curves.easeOutCubic,
-      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: BoxDecoration(
-        color: colors.surface.withOpacity(0.95),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadow.withOpacity(0.08),
-            blurRadius: 16,
-            offset: Offset(0, 8),
-            spreadRadius: 0,
+    return CosmosCard(
+      data: data,
+      isExpanded: _expandedStates[index],
+      onToggleExpand: () {
+        setState(() {
+          _expandedStates[index] = !_expandedStates[index];
+        });
+      },
+      onFavoritePressed: () {
+        // Implement your favorite logic here
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Added to favorites!'),
+            duration: Duration(seconds: 2),
           ),
-          BoxShadow(
-            color: colors.shadow.withOpacity(0.04),
-            blurRadius: 6,
-            offset: Offset(0, 2),
-            spreadRadius: 0,
-          ),
-        ],
-        border: Border.all(
-          color: colors.outline.withOpacity(0.1),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              Hero(
-                tag: 'image_${data['date']}',
-                child: ClipRRect(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                  child: data['media_type'] == 'image'
-                      ? Image.network(
-                    data['url'],
-                    height: 260,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Container(
-                        height: 260,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              colors.secondary.withOpacity(0.3),
-                              colors.secondary.withOpacity(0.5),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            strokeWidth: 3,
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                                : null,
-                            color: colors.accent,
-                          ),
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 260,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              colors.errorContainer.withOpacity(0.4),
-                              colors.errorContainer.withOpacity(0.6),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.error_outline,
-                                size: 48,
-                                color: colors.onErrorContainer.withOpacity(0.8),
-                              ),
-                              SizedBox(height: 12),
-                              Text(
-                                'Failed to load image',
-                                style: TextStyle(
-                                  color: colors.onSurfaceVariant.withOpacity(0.9),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  )
-                      : Container(
-                    height: 260,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          colors.accent.withOpacity(0.8),
-                          colors.accentVariant.withOpacity(0.8),
-                          colors.accent.withOpacity(0.6),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: colors.surfaceElevated.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                            child: Icon(Icons.play_circle_outline, size: 64, color: colors.onSurface.withOpacity(0.9)),
-                          ),
-                          SizedBox(height: 16),
-                          Text(
-                            'Video Content',
-                            style: TextStyle(
-                              color: colors.onSurface.withOpacity(0.95),
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              // Positioned for title and date (no gradient)
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  padding: EdgeInsets.fromLTRB(20, 20, 20, 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        data['title'] ?? 'No Title',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: colors.onPrimary.withOpacity(0.95),
-                          shadows: [
-                            Shadow(
-                              offset: Offset(0, 2),
-                              blurRadius: 4,
-                              color: colors.shadow.withOpacity(0.6),
-                            ),
-                          ],
-                          height: 1.2,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: colors.surfaceElevated.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.calendar_today, size: 14, color: colors.onPrimary.withOpacity(0.9)),
-                            SizedBox(width: 6),
-                            Text(
-                              _formatDate(data['date'] ?? ''),
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: colors.onPrimary.withOpacity(0.9),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          // Content below the image (only Read More/Less and favorite)
-          Padding(
-            padding: EdgeInsets.fromLTRB(20, 20, 20, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Explanation Text with AnimatedSize for smooth expansion
-                AnimatedSize(
-                  duration: Duration(milliseconds: 300),
-                  curve: Curves.easeInOutCubic,
-                  child: Column(
-                    children: [
-                      if (_expandedStates[index]) // Only show explanation if expanded
-                        Container(
-                          margin: EdgeInsets.only(bottom: 20),
-                          padding: EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: colors.surfaceContainer,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: colors.outline.withOpacity(0.1),
-                              width: 1,
-                            ),
-                          ),
-                          child: Text(
-                            data['explanation'] ?? '',
-                            style: TextStyle(
-                              fontSize: 15,
-                              height: 1.7,
-                              color: colors.onSurfaceVariant.withOpacity(0.9),
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _expandedStates[index] = !_expandedStates[index];
-                        });
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              colors.buttonSecondary.withOpacity(0.08),
-                              colors.buttonSecondary.withOpacity(0.12),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(
-                            color: colors.outline.withOpacity(0.25),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: colors.shadow.withOpacity(0.08),
-                              blurRadius: 6,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              _expandedStates[index] ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                              size: 20,
-                              color: colors.onSecondary.withOpacity(0.9),
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              _expandedStates[index] ? 'Show Less' : 'Read More',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: colors.onSecondary.withOpacity(0.9),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: colors.surface.withOpacity(0.9),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: colors.shadow.withOpacity(0.06),
-                            blurRadius: 12,
-                            offset: Offset(0, 4),
-                            spreadRadius: 2,
-                          ),
-                        ],
-                        border: Border.all(
-                          color: colors.outline.withOpacity(0.2),
-                          width: 1,
-                        ),
-                      ),
-                      child: IconButton(
-                        icon: Icon(Icons.favorite_border, size: 20),
-                        onPressed: () {
-                          // Implement favorite logic here
-                        },
-                        color: colors.onSurface.withOpacity(0.85),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -600,7 +290,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             ),
             SizedBox(height: 20),
             Text(
-              'Loading the Cosmos...',
+              '🌒 Loading the Cosmos 🌖...',
               style: TextStyle(
                 color: colors.onSurfaceVariant.withOpacity(0.8),
                 fontSize: 18,
@@ -613,13 +303,13 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           : FadeTransition(
         opacity: _fadeAnimation,
         child: CustomScrollView(
-          controller: widget.scrollController, // Use the passed-in scroll controller
+          controller: widget.scrollController,
           slivers: [
             SliverToBoxAdapter(
               child: Column(
                 children: [
-                  _buildMainHeaderContent(), // "Hello, username" row
-                  _buildDiscoverCosmosBoxContent(), // "Discover the cosmos" box
+                  _buildMainHeaderContent(),
+                  _buildDiscoverCosmosBoxContent(),
                 ],
               ),
             ),
@@ -637,7 +327,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           ],
         ),
       ),
-      // No FloatingActionButton here anymore
     );
   }
 }

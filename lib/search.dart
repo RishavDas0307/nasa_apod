@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'authProvider.dart' as custom_auth_provider;
 import 'auth.dart';
+import 'cosmos_card.dart';
 
 class Search extends StatefulWidget {
   const Search({super.key});
@@ -17,6 +18,7 @@ class _SearchState extends State<Search> {
   final TextEditingController _dateController = TextEditingController();
   Map<String, dynamic>? _searchedData;
   bool _isLoading = false;
+  bool _isExpanded = false; // Track expansion state for CosmosCard
 
   Future<void> _fetchNasaData(String date) async {
     setState(() {
@@ -32,6 +34,7 @@ class _SearchState extends State<Search> {
         setState(() {
           _searchedData = jsonDecode(response.body);
           _isLoading = false;
+          _isExpanded = false; // Reset expansion state when new data is loaded
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -66,75 +69,29 @@ class _SearchState extends State<Search> {
     }
   }
 
-  Widget _buildCard(Map<String, dynamic> data) {
+  void _toggleExpansion() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
+  }
+
+  Future<void> _handleFavorite() async {
     final authProvider = Provider.of<custom_auth_provider.AuthProvider>(context, listen: false);
 
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      margin: EdgeInsets.all(8),
-      elevation: 4,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              image: data['media_type'] == 'image'
-                  ? DecorationImage(
-                image: NetworkImage(data['url']),
-                fit: BoxFit.cover,
-              )
-                  : null,
-              color: data['media_type'] == 'video' ? Colors.black : null,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              data['title'] ?? 'No Title',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              data['date'] ?? '',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  data['explanation']?.substring(0, 50) ?? '',
-                  style: TextStyle(fontSize: 14),
-                ),
-                IconButton(
-                  icon: Icon(Icons.favorite_border, color: Colors.red),
-                  onPressed: () async {
-                    if (authProvider.user == null) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => SignInPage()),
-                      );
-                    } else {
-                      await authProvider.addFavorite(data['url']);
-                      await authProvider.fetchFavorites(); // Ensure the favorites are updated
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Added to favorites!')),
-                      );
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+    if (authProvider.user == null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => SignInPage()),
+      );
+    } else {
+      if (_searchedData != null) {
+        await authProvider.addFavorite(_searchedData!['url']);
+        await authProvider.fetchFavorites();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Added to favorites!')),
+        );
+      }
+    }
   }
 
   @override
@@ -145,7 +102,7 @@ class _SearchState extends State<Search> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 32), // Space for status bar
+            SizedBox(height: 32),
             Text(
               'Search',
               style: TextStyle(
@@ -170,9 +127,36 @@ class _SearchState extends State<Search> {
                   ? Center(child: CircularProgressIndicator())
                   : _searchedData != null
                   ? ListView(
-                children: [_buildCard(_searchedData!)],
+                children: [
+                  CosmosCard(
+                    data: _searchedData!,
+                    isExpanded: _isExpanded,
+                    onToggleExpand: _toggleExpansion,
+                    onFavoritePressed: _handleFavorite,
+                  ),
+                ],
               )
-                  : SizedBox(),
+                  : Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.search,
+                      size: 64,
+                      color: Colors.grey.withOpacity(0.5),
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'Select a date to explore NASA\'s\nAstronomy Picture of the Day',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),

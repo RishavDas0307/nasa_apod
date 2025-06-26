@@ -38,6 +38,7 @@ dependencies:
   provider: ^6.0.1
   image_picker: ^1.1.2
   firebase_storage: ^12.4.3
+  shared_preferences: ^2.2.3
 
 
 

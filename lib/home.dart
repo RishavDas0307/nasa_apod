@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:intl/intl.dart';
+import 'dart:convert'; // Keep for jsonDecode if you use it elsewhere, though now mostly handled by ApodCacheManager
+import 'package:intl/intl.dart'; // Keep for DateFormat if you use it elsewhere, though now mostly handled by ApodCacheManager
 import 'package:provider/provider.dart';
 import 'authProvider.dart' as custom_auth_provider;
 import 'auth.dart';
 import 'theme_provider.dart';
 import 'cosmos_card.dart'; // Import the CosmosCard widget
+import 'apod_cache_manager.dart'; // Import the new cache manager
 
 class Home extends StatefulWidget {
   final String username;
@@ -24,6 +24,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   List<bool> _expandedStates = [];
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
+  final ApodCacheManager _cacheManager = ApodCacheManager(); // Instance of our cache manager
 
   @override
   void initState() {
@@ -35,7 +36,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     _fadeAnimation = Tween<double>(begin: 0.9, end: 1.1).animate(
       CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic),
     );
-    _fetchLast7DaysPictures();
+    _loadData(); // Call _loadData instead of _fetchLast7DaysPictures directly
   }
 
   @override
@@ -44,36 +45,29 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  Future<void> _fetchLast7DaysPictures() async {
+  Future<void> _loadData() async {
     setState(() => _isLoading = true);
-
-    final apiKey = 'YfMdU7kzIWgdk1OIkGXbmrDfZOJhN3bmlTHOMlnj';
-    final baseUrl = 'https://api.nasa.gov/planetary/apod';
-    DateTime today = DateTime.now();
-
-    List<Map<String, dynamic>> fetchedData = [];
-
-    for (int i = 0; i < 7; i++) {
-      final date = today.subtract(Duration(days: i));
-      final formattedDate = DateFormat("yyyy-MM-dd").format(date);
-
-      try {
-        final response = await http.get(Uri.parse('$baseUrl?api_key=$apiKey&date=$formattedDate'));
-        if (response.statusCode == 200) {
-          fetchedData.add(jsonDecode(response.body));
-        }
-      } catch (e) {
-        print('Error fetching data for date $formattedDate: $e');
-      }
+    try {
+      final fetchedData = await _cacheManager.fetchAndCacheLast7DaysData();
+      setState(() {
+        _last7DaysData = fetchedData;
+        _expandedStates = List<bool>.filled(fetchedData.length, false);
+      });
+    } catch (e) {
+      print('Error loading data: $e');
+      // Optionally show an error message to the user
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+      _fadeController.forward();
     }
+  }
 
-    setState(() {
-      _last7DaysData = fetchedData;
-      _expandedStates = List<bool>.filled(fetchedData.length, false);
-      _isLoading = false;
-    });
-
-    _fadeController.forward();
+  Future<void> _refreshData() async {
+    // Clear cache (optional, but good for true "refresh" to get latest from API)
+    await _cacheManager.clearCache();
+    await _loadData(); // Re-fetch and cache data
   }
 
   String _formatDate(String dateString) {
@@ -300,31 +294,36 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           ],
         ),
       )
-          : FadeTransition(
-        opacity: _fadeAnimation,
-        child: CustomScrollView(
-          controller: widget.scrollController,
-          slivers: [
-            SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  _buildMainHeaderContent(),
-                  _buildDiscoverCosmosBoxContent(),
-                ],
+          : RefreshIndicator( // Added RefreshIndicator here
+        onRefresh: _refreshData,
+        color: colors.accent, // Color of the refresh indicator
+        backgroundColor: colors.buttonSecondary, // Background of the refresh indicator
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: CustomScrollView(
+            controller: widget.scrollController,
+            slivers: [
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    _buildMainHeaderContent(),
+                    _buildDiscoverCosmosBoxContent(),
+                  ],
+                ),
               ),
-            ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                  return _buildCard(_last7DaysData[index], index);
-                },
-                childCount: _last7DaysData.length,
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                    return _buildCard(_last7DaysData[index], index);
+                  },
+                  childCount: _last7DaysData.length,
+                ),
               ),
-            ),
-            SliverPadding(
-              padding: EdgeInsets.only(bottom: 80),
-            ),
-          ],
+              SliverPadding(
+                padding: EdgeInsets.only(bottom: 80),
+              ),
+            ],
+          ),
         ),
       ),
     );
